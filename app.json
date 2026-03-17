@@ -51,12 +51,12 @@
     },
     "extra": {
       "appUpdate": {
-  "enabled": true,
-  "githubOwner": "darpan1401",
-  "githubRepo": "Labour-Manager",
-  "apkAssetName": "labour-manager.apk"
-}
-
+        "enabled": true,
+        "githubOwner": "darpan1401",
+        "githubRepo": "Labour-Manager",
+        "apkAssetName": "labour-manager.apk"
+      },
+      "router": {}
     }
   }
 }

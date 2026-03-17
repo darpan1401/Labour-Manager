@@ -1,91 +1,83 @@
 # Sharing And Updates
 
-## What this setup does
+## What this does
 
-- Build a shareable Android APK without using the Play Store.
-- Check GitHub Releases from inside the app.
-- Show an in-app update prompt when a newer APK is available.
-- Keep local app data when the new APK is installed over the existing app.
+- Push to `main`
+- GitHub Actions builds a signed Android APK
+- The APK is uploaded to GitHub Releases as `labour-manager.apk`
+- The app checks GitHub Releases and shows an update prompt when a newer version exists
 
 ## One-time setup
 
-1. Create a GitHub repository for this app.
-2. Push this project to that repository.
-3. In [app.json](../app.json), fill these values under `expo.extra.appUpdate`:
+1. Keep these values set in [app.json](../app.json):
+   - `expo.extra.appUpdate.enabled = true`
+   - `expo.extra.appUpdate.githubOwner = darpan1401`
+   - `expo.extra.appUpdate.githubRepo = Labour-Manager`
+   - `expo.extra.appUpdate.apkAssetName = labour-manager.apk`
+2. Keep `expo.android.package` unchanged after first release.
+3. Keep using the same Android signing key for every build.
+4. Keep the GitHub repo public so the app can read latest releases.
 
-   - `enabled`: `true`
-   - `githubOwner`: your GitHub username or org
-   - `githubRepo`: repository name
-   - `apkAssetName`: APK file name you upload to releases, for example `labour-manager.apk`
+## Only 2 GitHub secrets needed
 
-4. Keep `android.package` unchanged after your first shared build.
-5. Keep using the same signing key for every Android build.
+Go to `GitHub Repo -> Settings -> Secrets and variables -> Actions` and add:
 
-## Build an APK to share
+- `ANDROID_KEYSTORE_BASE64`
+- `ANDROID_KEYSTORE_PASSWORD`
 
-1. Install EAS CLI:
+## Create the signing key once
 
-   ```bash
-   npm install -g eas-cli
-   ```
+```bash
+keytool -genkeypair -v \
+  -storetype JKS \
+  -keystore upload-keystore.jks \
+  -alias labourmanager \
+  -keyalg RSA \
+  -keysize 2048 \
+  -validity 10000
+```
 
-2. Login:
+Convert it for GitHub:
 
-   ```bash
-   eas login
-   ```
+```bash
+base64 -w 0 upload-keystore.jks > keystore-base64.txt
+```
 
-3. Configure the project the first time:
+Use:
 
-   ```bash
-   eas build:configure
-   ```
+- `ANDROID_KEYSTORE_BASE64` = content of `keystore-base64.txt`
+- `ANDROID_KEYSTORE_PASSWORD` = keystore password
 
-4. Build the APK:
+Optional shortcut with GitHub CLI:
 
-   ```bash
-   npm run build:android:apk
-   ```
+```bash
+chmod +x scripts/github-actions/set-github-secrets.sh
+./scripts/github-actions/set-github-secrets.sh
+```
 
-5. Download the generated APK and share it directly on WhatsApp, Drive, Telegram, or GitHub Releases.
+## Daily release flow
 
-## Publish a future update
+1. Change app code.
+2. Increase version in [app.json](../app.json):
+   - `expo.version`
+   - `expo.android.versionCode`
+3. Push to `main`:
 
-1. Update the app version in [app.json](../app.json):
+```bash
+git add .
+git commit -m "Release update"
+git push origin main
+```
 
-   - Increase `expo.version`
-   - Increase `expo.android.versionCode`
-   - Increase `expo.ios.buildNumber` if you later build iPhone versions
-
-2. Build a fresh APK:
-
-   ```bash
-   npm run build:android:apk
-   ```
-
-3. Create a GitHub Release:
-
-   - Tag name should match your app version, for example `v1.0.1`
-   - Upload the APK asset with the exact name from `apkAssetName`
-   - Put your update notes in the release description
-
-4. When your user opens the app, it will check the latest GitHub Release and show an update prompt.
+4. Wait for `Actions -> Android Release`.
+5. Download APK from:
+   - `Releases -> latest release -> labour-manager.apk`
+   - or `Actions -> latest run -> Artifacts`
+6. Share that APK.
 
 ## Important notes
 
-- Android users should install the new APK over the old app. They should not uninstall first.
-- If the package name and signing key stay the same, the app updates in place and local saved data remains.
-- If you change the package name or signing key, Android treats it like a different app and local data can be lost.
-- iPhone direct sharing is different. For iPhone, use TestFlight or Apple distribution.
-
-## Good release habit
-
-- Keep APK asset name fixed, for example `labour-manager.apk`
-- Keep tag names version-based, for example `v1.0.0`, `v1.0.1`, `v1.1.0`
-- Add short notes like:
-
-  ```text
-  - Faster report sharing
-  - Better labour storage
-  - Fixed attendance labels
-  ```
+- User should install new APK over old app, not uninstall first.
+- Same package name + same signing key = local data stays safe.
+- App cannot silently install updates. User still taps update and installs the APK.
+- If you forget to increase `expo.version` and `expo.android.versionCode`, update flow can fail.

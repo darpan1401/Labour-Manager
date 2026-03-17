@@ -51,4 +51,4 @@ Join our community of developers creating universal apps.
 
 ## Project Notes
 
-- Android sharing and update flow: [docs/sharing-and-updates.md](./docs/sharing-and-updates.md)
+- Android auto-build and update flow: [docs/sharing-and-updates.md](./docs/sharing-and-updates.md)
