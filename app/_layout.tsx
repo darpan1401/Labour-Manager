@@ -133,12 +133,7 @@ export default function RootLayout() {
         </View>
       </Modal>
 
-      {isCheckingUpdate && !updateInfo ? (
-        <View pointerEvents="none" style={styles.checkingPill}>
-          <ActivityIndicator color="#111827" size="small" />
-          <Text style={styles.checkingText}>Checking updates...</Text>
-        </View>
-      ) : null}
+      {/* Update check is now fully background; no UI shown while checking */}
     </SafeAreaProvider>
   );
 }
