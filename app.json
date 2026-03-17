@@ -9,11 +9,15 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.darpan.labourmanager",
+      "buildNumber": "1"
     },
     "android": {
+      "package": "com.darpan.labourmanager",
+      "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#0f172a",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -38,11 +42,21 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "appUpdate": {
+  "enabled": true,
+  "githubOwner": "darpan1401",
+  "githubRepo": "Labour-Manager",
+  "apkAssetName": "labour-manager.apk"
+}
+
     }
   }
 }
