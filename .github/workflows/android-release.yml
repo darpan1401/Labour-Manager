@@ -44,8 +44,12 @@ jobs:
         with:
           packages: ''
 
+
       - name: Install dependencies
         run: npm ci
+
+      - name: Auto bump app version
+        run: node scripts/bump-version.js
 
       - name: Read app release config
         id: app_config

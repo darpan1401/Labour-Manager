@@ -12,8 +12,8 @@ import {
 } from "react-native";
 
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import * as Contacts from "expo-contacts";
 import { useFocusEffect } from "@react-navigation/native";
+import * as Contacts from "expo-contacts";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -58,12 +58,23 @@ export default function LaboursScreen() {
         return;
       }
 
+      // Normalize query for phone search
+      const normalizedQueryPhone = normalizePhone(query);
+
       setFilteredContacts(
         contacts.filter((contact) => {
           const name = contact.name?.toLowerCase() ?? "";
           const phone = normalizePhone(contact.phoneNumbers?.[0]?.number ?? "");
 
-          return name.includes(query) || phone.includes(query.replace(/\D/g, ""));
+          // If query is mostly digits, try phone match, else name match
+          if (normalizedQueryPhone.length >= 5) {
+            // If user types at least 5 digits, match phone
+            return (
+              name.includes(query) || phone.includes(normalizedQueryPhone)
+            );
+          }
+          // Otherwise, match name only
+          return name.includes(query);
         }),
       );
     });
