@@ -1,5 +1,7 @@
 import Constants from "expo-constants";
-import { Linking, Platform } from "react-native";
+import * as FileSystem from "expo-file-system";
+import * as IntentLauncher from "expo-intent-launcher";
+import { Platform, ToastAndroid } from "react-native";
 
 export type AppUpdateInfo = {
   currentVersion: string;
@@ -33,7 +35,6 @@ type GitHubRelease = {
 export function canCheckForAppUpdate() {
   const config = getUpdateConfig();
   const isStandalone = Constants.appOwnership !== "expo";
-
   return (
     Platform.OS === "android" &&
     isStandalone &&
@@ -81,8 +82,35 @@ export async function checkForAppUpdate(): Promise<AppUpdateInfo | null> {
 }
 
 export async function openAppUpdate(update: AppUpdateInfo) {
+  // Download APK to app's cache directory
   const url = update.downloadUrl || update.releaseUrl;
-  await Linking.openURL(url);
+  if (!url.endsWith(".apk")) {
+    ToastAndroid.show("Update APK not found.", ToastAndroid.LONG);
+    return;
+  }
+
+  try {
+    ToastAndroid.show("Downloading update...", ToastAndroid.SHORT);
+    const localUri = (FileSystem as any).cacheDirectory + "update-latest.apk";
+    const downloadResumable = FileSystem.createDownloadResumable(url, localUri);
+    const { uri } = await downloadResumable.downloadAsync();
+    ToastAndroid.show(
+      "Download complete. Opening installer...",
+      ToastAndroid.SHORT,
+    );
+
+    // Request permission to install unknown apps (Android 8+)
+    // (Optional: can add permission check here)
+
+    // Launch APK installer
+    await IntentLauncher.startActivityAsync("android.intent.action.VIEW", {
+      data: uri,
+      flags: 1,
+      type: "application/vnd.android.package-archive",
+    });
+  } catch (e) {
+    ToastAndroid.show("Update failed: " + e, ToastAndroid.LONG);
+  }
 }
 
 function getUpdateConfig(): UpdateConfig {
