@@ -129,3 +129,27 @@ jobs:
             echo "- Direct APK download: https://github.com/${{ github.repository }}/releases/download/$RELEASE_TAG/$APK_ASSET_NAME"
             echo "- Workflow artifact: Download \`android-apk-$RELEASE_TAG\` from this run"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Notify Telegram on Success
+        if: success()
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          VERSION: ${{ steps.app_config.outputs.version }}
+          RELEASE_TAG: ${{ steps.app_config.outputs.release_tag }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          MSG="🔔 Labour Manager Build Notification%0A"
+          MSG+="GitHub Actions CI/CD - ✅ Success%0A"
+          MSG+="👤 Developer: $GITHUB_ACTOR%0A"
+          MSG+="🛠️ Application: Labour Manager%0A"
+          MSG+="🌿 Branch: $GITHUB_REF_NAME%0A"
+          MSG+="📊 Status: ✅ Success%0A"
+          MSG+="🏷️ Version: v$VERSION%0A"
+          MSG+="📅 Date/Time: $(date '+%Y-%m-%d %H:%M:%S')%0A"
+          MSG+="🔗 Release: https://github.com/$GITHUB_REPOSITORY/releases/tag/$RELEASE_TAG%0A"
+          curl -s -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" \
+            -d chat_id="$TELEGRAM_CHAT_ID" \
+            -d text="$MSG"
